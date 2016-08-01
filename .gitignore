@@ -1,0 +1,7 @@
+#
+/*
+*.elc
+!emacs.org
+!init.el
+!vendor/
+!bin/
