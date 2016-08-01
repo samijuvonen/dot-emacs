@@ -828,7 +828,7 @@
       (org-babel-do-load-languages
        'org-babel-load-languages
        '(
-         (R . t)
+         ;;(R . t)
          (calc . t)
          (ditaa . t)
          (dot . t)

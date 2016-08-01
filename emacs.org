@@ -871,7 +871,7 @@ Don't run an editor on a server, edit the files from the comfort of a local Emac
       (org-babel-do-load-languages
        'org-babel-load-languages
        '(
-         (R . t)
+         ;;(R . t)
          (calc . t)
          (ditaa . t)
          (dot . t)
@@ -1154,7 +1154,6 @@ Ruby-mode is included with Emacs (23+).
   (add-to-list 'auto-mode-alist '("\\.html?\\'" . web-mode))
   )
 #+END_SRC
-
 
 * Writing
 ** Proselint
