@@ -602,6 +602,15 @@
   (setq imenu-auto-rescan t)
 ;; Navigation:1 ends here
 
+;; Expand-region
+
+
+;; [[file:emacs.org::*Expand-region][Expand-region:1]]
+(use-package expand-region
+  :ensure t
+  :bind ("C-=" . er/expand-region))
+;; Expand-region:1 ends here
+
 ;; Encryption
 
 
@@ -721,127 +730,134 @@
 
 
 ;; [[file:emacs.org::*Orgmode][Orgmode:1]]
-  (use-package org
-    :ensure org-plus-contrib
+(use-package org
+  :ensure org-plus-contrib
+  :defer t
+  :pin org
+  :bind 
+  (("C-c l" . org-store-link)
+   ("C-c a" . org-agenda)
+   ("C-c c" . org-capture)
+   ("C-c b" . org-iswitchb)
+   ("C-c t" . org-time-stamp-inactive)) ; flycheck steals C-c ! map
+  :config 
+  (setq org-modules '(org-crypt org-docview org-habit org-info
+                                org-protocol org-bookmark org-bullets
+                                org-checklist org-eshell org-learn org-man 
+                                org-toc org-velocity org-wikinodes)
+        )
+  (add-to-list 'org-structure-template-alist
+               '("py" "\n#+BEGIN_SRC python\n?\n#+END_SRC\n"
+                 "<src lang=\"python\">\n?\n</src>")
+               )
+  (add-to-list 'org-structure-template-alist
+               '("el" "\n#+BEGIN_SRC emacs-lisp\n?\n#+END_SRC\n"
+                 "<src lang=\"emacs-lisp\">\n?\n</src>")
+               )
+  (add-to-list 'org-structure-template-alist
+               '("sh" "\n#+BEGIN_SRC sh\n?\n#+END_SRC\n"
+                 "<src lang=\"sh\">\n?\n</src>")
+               )   
+
+  (setq org-directory "~/Documents/Org"
+        org-agenda-files (list "~/Documents/Org")
+        org-default-notes-file "~/Documents/Org/notes.org.gpg"
+        org-startup-folded "contents"
+        org-archive-folder "~/Documents/Org/.archive"
+        org-special-ctrl-a/e t
+        ;;org-ctrl-k-protect-subtree t
+        org-catch-invisible-edits 'show ; TODO check 'smart
+        org-return-follows-link t
+        org-src-fontify-natively t
+        org-src-tab-acts-natively t
+        org-src-preserve-indentation t
+        org-support-shift-select t
+        )
+  (setq org-ellipsis "…")
+  (setq org-todo-keywords
+        (quote ((sequence "TODO(t)" "NEXT(n)" "|" "DONE(d)")
+                (sequence "WAITING(w@/!)" "HOLD(h@/!)" "|" "CANCELLED(c@/!)" 
+                          "PHONE" "MEETING")
+                ))
+        )
+  (setq org-use-fast-todo-selection t)
+  (setq org-treat-S-cursor-todo-selection-as-state-change nil)
+  (setq org-todo-state-tags-triggers
+        (quote (("CANCELLED" ("CANCELLED" . t))
+                ("WAITING" ("WAITING" . t))
+                ("HOLD" ("WAITING") ("HOLD" . t))
+                (done ("WAITING") ("HOLD"))
+                ("TODO" ("WAITING") ("CANCELLED") ("HOLD"))
+                ("NEXT" ("WAITING") ("CANCELLED") ("HOLD"))
+                ("DONE" ("WAITING") ("CANCELLED") ("HOLD"))
+                ))
+        )
+  ;; (setq org-todo-keywords 
+  ;;       org-todo-keyword-faces  
+  ;;       org-enforce-todo-dependencies  
+  ;;       org-enforce-todo-checkbox-dependencies )
+  (setq org-capture-templates
+        '(("t" "Todo" entry
+           (file+headline "~/Documents/Org/todo.org" "Tasks")
+           "* TODO %?\n  %i\n  %a")
+          ("n" "Note" entry
+           (file+headline "~/Documents/Org/notes.org.gpg" "Unorganized")
+           "* %?\n  %i\n  %a")
+          ("j" "Journal" entry
+           (file+datetree "~/Documents/Org/journal.org.gpg")
+           "* %u %?\n  %i\n  %a")
+          )
+        )
+  
+  (use-package org-bullets
+    :init (setq org-bullets-bullet-list '("●" "★" "❀" "►" "•" "▸" "☢"))
     :defer t
-    :pin org
-    :bind 
-    (("C-c l" . org-store-link)
-     ("C-c a" . org-agenda)
-     ("C-c c" . org-capture)
-     ("C-c b" . org-iswitchb)
-     ("C-c t" . org-time-stamp-inactive)) ; flycheck steals C-c ! map
-    :config 
-    (setq org-modules '(org-crypt org-docview org-habit org-info
-                                  org-protocol org-bookmark org-bullets
-                                  org-checklist org-eshell org-learn org-man 
-                                  org-toc org-velocity org-wikinodes)
-          )
-    (add-to-list 'org-structure-template-alist
-                 '("py" "\n#+BEGIN_SRC python\n?\n#+END_SRC\n"
-                   "<src lang=\"python\">\n?\n</src>")
-                 )
-    (add-to-list 'org-structure-template-alist
-                 '("el" "\n#+BEGIN_SRC emacs-lisp\n?\n#+END_SRC\n"
-                   "<src lang=\"emacs-lisp\">\n?\n</src>")
-                 )
-    (add-to-list 'org-structure-template-alist
-                 '("sh" "\n#+BEGIN_SRC sh\n?\n#+END_SRC\n"
-                   "<src lang=\"sh\">\n?\n</src>")
-                 )   
-
-    (setq org-directory "~/Documents/Org"
-          org-agenda-files (list "~/Documents/Org")
-          org-default-notes-file "~/Documents/Org/notes.org.gpg"
-          org-startup-folded "contents"
-          org-archive-folder "~/Documents/Org/.archive"
-          org-special-ctrl-a/e t
-          ;;org-ctrl-k-protect-subtree t
-          org-catch-invisible-edits 'show ; TODO check 'smart
-          org-return-follows-link t
-          org-src-fontify-natively t
-          org-src-tab-acts-natively t
-          org-src-preserve-indentation t
-          org-support-shift-select t
-          )
-      (setq org-ellipsis "…")
-      (setq org-todo-keywords
-            (quote ((sequence "TODO(t)" "NEXT(n)" "|" "DONE(d)")
-                    (sequence "WAITING(w@/!)" "HOLD(h@/!)" "|" "CANCELLED(c@/!)" 
-                              "PHONE" "MEETING")
-                    ))
-            )
-      (setq org-use-fast-todo-selection t)
-      (setq org-treat-S-cursor-todo-selection-as-state-change nil)
-      (setq org-todo-state-tags-triggers
-            (quote (("CANCELLED" ("CANCELLED" . t))
-                    ("WAITING" ("WAITING" . t))
-                    ("HOLD" ("WAITING") ("HOLD" . t))
-                    (done ("WAITING") ("HOLD"))
-                    ("TODO" ("WAITING") ("CANCELLED") ("HOLD"))
-                    ("NEXT" ("WAITING") ("CANCELLED") ("HOLD"))
-                    ("DONE" ("WAITING") ("CANCELLED") ("HOLD"))
-                    ))
-            )
-      ;; (setq org-todo-keywords 
-      ;;       org-todo-keyword-faces  
-      ;;       org-enforce-todo-dependencies  
-      ;;       org-enforce-todo-checkbox-dependencies )
-      (setq org-capture-templates
-            '(("t" "Todo" entry
-               (file+headline "~/Documents/Org/todo.org" "Tasks")
-               "* TODO %?\n  %i\n  %a")
-              ("n" "Note" entry
-               (file+headline "~/Documents/Org/notes.org.gpg" "Unorganized")
-               "* %?\n  %i\n  %a")
-              ("j" "Journal" entry
-               (file+datetree "~/Documents/Org/journal.org.gpg")
-               "* %u %?\n  %i\n  %a")
-              )
-            )
-    
-      (use-package org-bullets
-        :init (setq org-bullets-bullet-list '("●" "★" "❀" "►" "•" "▸" "☢"))
-        :defer t
-        :ensure t
-        :commands (org-bullets-mode))
-
-      (use-package ob-ipython
-        :load-path "vendor/ob-ipython"
-        :defer t
-        :config 
-        (setq ob-ipython-command "ipython3")
-        (add-to-list 'org-structure-template-alist
-                     '("ipy" "\n#+BEGIN_SRC ipython :session\n?\n#+END_SRC\n"
-                       "<src lang=\"python\">\n?\n</src>"))
-        )
-
-      (use-package ox-pandoc
-        :ensure t
-        )
-
-      (add-hook 'org-mode-hook
-                (lambda () (imenu-add-to-menubar "Index")
-                  (org-bullets-mode 1)
-                  ))
-
-      (org-babel-do-load-languages
-       'org-babel-load-languages
-       '(
-         ;;(R . t)
-         (calc . t)
-         (ditaa . t)
-         (dot . t)
-         (emacs-lisp . t)
-         (gnuplot . t)
-         (js . t)
-         (makefile . t)
-         (python . t)
-         (ruby . t)
-         (sh . t)
-         ))
-
+    :ensure t
+    :commands (org-bullets-mode)
     )
+
+  (use-package ob-ipython
+    :load-path "vendor/ob-ipython"
+    :defer t
+    :config 
+    (setq ob-ipython-command "ipython3")
+    (add-to-list 'org-structure-template-alist
+                 '("ipy" "\n#+BEGIN_SRC ipython :session\n?\n#+END_SRC\n"
+                   "<src lang=\"python\">\n?\n</src>"))
+    )
+
+  (use-package ox-pandoc
+    :ensure t
+    )
+  (use-package org-gcal
+    :ensure t
+    )
+  (use-package org-gnome
+    :ensure t
+    )
+
+  (add-hook 'org-mode-hook
+            (lambda () (imenu-add-to-menubar "Index")
+              (org-bullets-mode 1)
+              ))
+
+  (org-babel-do-load-languages
+   'org-babel-load-languages
+   '(
+     (calc . t)
+     (ditaa . t)
+     (dot . t)
+     (emacs-lisp . t)
+     (gnuplot . t)
+     (js . t)
+     (makefile . t)
+     (python . t)
+                                        ;(R . t)
+     (ruby . t)
+     (sh . t)
+     ))
+
+  )
 ;; Orgmode:1 ends here
 
 ;; Ansible
@@ -873,6 +889,20 @@
   :ensure t
   )
 ;; Ansible:1 ends here
+
+;; Docker
+
+
+
+;; [[file:emacs.org::*Docker][Docker:1]]
+(use-package dockerfile-mode
+  :ensure t
+  )
+
+(use-package docker
+  :ensure t
+  )
+;; Docker:1 ends here
 
 ;; Puppet
 
@@ -912,21 +942,25 @@
   :pin gnu
   :ensure t
   :config
-  (progn
     (global-company-mode)
     (use-package company-quickhelp
       :ensure t
       :config
       (setq company-quickhelp-idle-delay 3)
-      (company-quickhelp-mode 1))
+      (company-quickhelp-mode 1)
+      )
     (use-package company-emoji
       :ensure t
       :config
       (add-hook 'markdown-mode-hook 'company-mode)
-      (add-hook 'markdown-mode-hook 'company-emoji-init))
+      (add-hook 'markdown-mode-hook 'company-emoji-init) 
+      )
     (use-package company-jedi
+      :disabled t
       :ensure t
-      :config (add-to-list 'company-backends 'company-jedi))))
+      :config (add-to-list 'company-backends 'company-jedi) 
+      )  
+  )
 
 
 (use-package flycheck
@@ -957,6 +991,16 @@
 (add-hook 'prog-mode-hook 'imenu-add-menubar-index)
 (add-hook 'prog-mode-hook 'aggressive-indent-mode)
 ;; General\ programming:1 ends here
+
+;; Makefile
+
+
+;; [[file:emacs.org::*Makefile][Makefile:1]]
+(defun my-makefile-hook
+    (setq indent-tabs-mode t)
+  )
+(add-hook 'makefile-mode-hook 'my-makefile-hook)
+;; Makefile:1 ends here
 
 ;; Projectile
 
@@ -1062,7 +1106,6 @@
 ;; inf-ruby gives us a Ruby REPL
 ;; not in Melpa-stable. TODO put it in vendor/
 (use-package inf-ruby
-  :load-path "vendor/inf-ruby"
   :config 
   (add-hook 'ruby-mode-hook 'inf-ruby-minor-mode)
   )
@@ -1074,11 +1117,17 @@
 ;; [[file:emacs.org::*Go][Go:1]]
 ;; install godef w/ go get github.com/rogpeppe/godef
 (use-package go-mode
-  :ensure t)
+  :ensure t
+  )
 
 ;; requires gocode: go get -u github.com/nsf/gocode
 (use-package go-eldoc
-  :ensure t)
+  :ensure t
+  )
+(use-package company-go
+  :ensure t
+  )
+
 
 (add-hook 'go-mode-hook 
           (lambda ()
@@ -1110,6 +1159,14 @@
   (add-to-list 'auto-mode-alist '("\\.html?\\'" . web-mode))
   )
 ;; Web\ mode:1 ends here
+
+;; Text mode
+
+
+
+;; [[file:emacs.org::*Text%20mode][Text\ mode:1]]
+(add-hook 'text-mode-hook 'turn-on-auto-fill)
+;; Text\ mode:1 ends here
 
 ;; Proselint
 
