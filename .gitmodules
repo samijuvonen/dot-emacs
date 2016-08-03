@@ -1,0 +1,3 @@
+[submodule "vendor/emacs-lorem-ipsum"]
+	path = vendor/emacs-lorem-ipsum
+	url = https://github.com/jschaf/emacs-lorem-ipsum.git

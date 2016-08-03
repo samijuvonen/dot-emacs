@@ -27,26 +27,41 @@ Put a reminder to not edit init.el by hand:
 #+END_SRC
 
 ** Prerequisites
+
 Some modes require help from outside of Emacs. These are command lines for
 Fedora for installing what's needed.
 
 *** Python, ipython/jupyter
-    =dnf install -y python-pep8 python3-pep8 python-autopep8 python3-autopep8 python-jedi python3-jedi=
-    =dnf install -y python-ipython\* python3-ipython\* python\*ipdb python\*jupyter\* python\*nbformat=
+
+    -dnf install -y python-pep8 python3-pep8 python-autopep8 python3-autopep8 python-jedi python3-jedi-
+
+    -dnf install -y python-ipython\* python3-ipython\* python\*ipdb python\*jupyter\* python\*nbformat-
 
 *** Proselint
-    =pip  install --user proselint=
-    =pip3 install --user proselint=
+
+    -pip  install --user proselint-
+ 
+   -pip3 install --user proselint-
 
 *** Go
     - Install and make these available on $PATH (add $GOPATH to $PATH or throw
       the binaries into /usr/local/bin/).
     
-    =go get -u github.com/rogpeppe/godef=
-    =go get -u github.com/nsf/gocode=
+    -go get -u github.com/rogpeppe/godef-
+
+    -go get -u github.com/nsf/gocode-
 
 *** Statistics
-    =dnf install -y R emacs-ess=
+
+    Install ESS from Fedora repo, since it's a slow moving target and likely to
+    be new enough.
+
+    -dnf install -y R emacs-ess-
+
+*** PDF Tools
+
+    -dnf install -y poppler-glib-devel-
+
 
 * Emacs general options
 ** Name and email
@@ -136,6 +151,33 @@ to avoid another Emacs bankruptcy. Been there, done that, rm -f'd .emacs...
     (shell-command-on-region b e
                              "python -mjson.tool" (current-buffer) t))
   )
+
+(defun modi/switch-to-scratch-and-back (arg)
+  "Toggle between *scratch-MODE* buffer and the current buffer.
+If a scratch buffer does not exist, create it with the major mode set to that
+of the buffer from where this function is called.
+
+        COMMAND -> Open/switch to a scratch buffer in the current buffer's major mode
+    C-0 COMMAND -> Open/switch to a scratch buffer in `fundamental-mode'
+    C-u COMMAND -> Open/switch to a scratch buffer in `org-mode'
+C-u C-u COMMAND -> Open/switch to a scratch buffer in `emacs-elisp-mode'
+
+source: http://emacs.stackexchange.com/questions/80/how-can-i-quickly-toggle-between-a-file-and-a-scratch-buffer-having-the-same-m/81#81
+"
+  (interactive "p")
+  (if (and (= arg 1) ; no prefix
+           (string-match-p "\\*scratch" (buffer-name)))
+      (switch-to-buffer (other-buffer))
+    (let ((mode-str (cl-case arg
+                      (0  "fundamental-mode") ; C-0
+                      (4  "org-mode") ; C-u
+                      (16 "emacs-lisp-mode") ; C-u C-u
+                      (t  (format "%s" major-mode))))) ; no prefix
+      (switch-to-buffer (get-buffer-create
+                         (concat "*scratch-" mode-str "*")))
+      (funcall (intern mode-str))))) ; http://stackoverflow.com/a/7539787/1219634
+
+(defalias 'scratch 'modi/switch-to-scratch-and-back)
 #+END_SRC
 
 ** Emacs UI and global settings
@@ -344,6 +386,7 @@ far I've been able to resist.
    )
   )
 #+END_SRC
+
 *** Modeline information
 
 #+BEGIN_SRC emacs-lisp
@@ -355,10 +398,12 @@ far I've been able to resist.
 ;; diminish keeps modeline tidy
 (use-package diminish
   :ensure t
-  :config
-  (diminish 'auto-fill-function "")
-  (diminish 'buffer-face-mode "") ; this ain't working
   )
+
+(diminish 'auto-fill-function "")
+(diminish 'buffer-face-mode "" )
+(diminish 'google-this-mode "")
+  
 
 
 #+END_SRC
@@ -367,9 +412,14 @@ far I've been able to resist.
 
 #+BEGIN_SRC emacs-lisp
 
+;; we don't care for Computer Modern, let's use All. The. Fonts.
+(setq latex-run-command  "latexmk -xelatex")
+
 (setq default-major-mode 'text-mode    ;; sorry friend
       ;; initial-major-mode 'text-mode ;; my lithp is not so good
       ) 
+
+(add-hook 'text-mode-hook 'turn-on-auto-fill)
 
 (prefer-coding-system 'utf-8)          ;; be modern
 (set-default-coding-systems 'utf-8)
@@ -439,6 +489,7 @@ far I've been able to resist.
 
 (setq enable-recursive-minibuffers t)
 
+(global-hl-line-mode 1)
 (show-paren-mode)
 
 (blink-cursor-mode nil)                ;; stop the madness
@@ -690,6 +741,16 @@ TODO: file a bug?
     )
 #+END_SRC
 
+*** Lorem ipsum
+#+BEGIN_SRC emacs-lisp
+
+
+(use-package lorem-ipsum
+  :load-path "vendor/emacs-lorem-ipsum"
+  :commands (lorem-ipsum-insert-paragraphs lorem-ipsum-insert-sentences)
+  )
+
+#+END_SRC
 *** Crux
 
 Crux is Bozhidar Batsov's Collection of Ridiculously Useful eXtensions. It is
@@ -768,6 +829,19 @@ Don't run an editor on a server, edit the files from the comfort of a local Emac
   )
  #+END_SRC
 
+*** PDF Tools
+
+PDF Tools requires =dnf install -y poppler-glib-devel= on Fedora.
+
+#+BEGIN_SRC emacs-lisp
+(use-package pdf-tools
+  :ensure t
+  :defer
+  :config
+  (pdf-tools-install)
+  )
+#+END_SRC
+
 * Orgmode
 
 #+BEGIN_SRC emacs-lisp
@@ -782,11 +856,16 @@ Don't run an editor on a server, edit the files from the comfort of a local Emac
    ("C-c c" . org-capture)
    ("C-c b" . org-iswitchb)
    ("C-c t" . org-time-stamp-inactive)) ; flycheck steals C-c ! map
+  :init
+  (eval-after-load 'ox '(require 'ox-koma-letter))
+  (eval-after-load 'ox-latex
+    '(add-to-list 'org-latex-packages-alist '("AUTO" "babel" t) t) 
+    )
   :config 
   (setq org-modules '(org-crypt org-docview org-habit org-info
                                 org-protocol org-bookmark org-bullets
                                 org-checklist org-eshell org-learn org-man 
-                                org-toc org-velocity org-wikinodes)
+                                org-toc)
         )
   (add-to-list 'org-structure-template-alist
                '("py" "\n#+BEGIN_SRC python\n?\n#+END_SRC\n"
@@ -850,38 +929,10 @@ Don't run an editor on a server, edit the files from the comfort of a local Emac
            "* %u %?\n  %i\n  %a")
           )
         )
-  
-  (use-package org-bullets
-    :init (setq org-bullets-bullet-list '("●" "★" "❀" "►" "•" "▸" "☢"))
-    :defer t
-    :ensure t
-    :commands (org-bullets-mode)
-    )
-
-  (use-package ob-ipython
-    :load-path "vendor/ob-ipython"
-    :defer t
-    :config 
-    (setq ob-ipython-command "ipython3")
-    (add-to-list 'org-structure-template-alist
-                 '("ipy" "\n#+BEGIN_SRC ipython :session\n?\n#+END_SRC\n"
-                   "<src lang=\"python\">\n?\n</src>"))
-    )
-
-  (use-package ox-pandoc
-    :ensure t
-    )
-  (use-package org-gcal
-    :ensure t
-    )
-  (use-package org-gnome
-    :ensure t
-    )
-
   (add-hook 'org-mode-hook
             (lambda () (imenu-add-to-menubar "Index")
-              (org-bullets-mode 1)
-              ))
+              (org-bullets-mode 1)) 
+            )
 
   (org-babel-do-load-languages
    'org-babel-load-languages
@@ -894,13 +945,52 @@ Don't run an editor on a server, edit the files from the comfort of a local Emac
      (js . t)
      (makefile . t)
      (python . t)
-                                        ;(R . t)
+     ;;(R . t)
      (ruby . t)
      (sh . t)
      ))
 
+  ;; Default packages included in every tex file, pdflatex or xelatex
+  ;; (setq org-latex-packages-alist
+  ;;       '(("" "graphicx" t)
+  ;;         ("" "longtable" nil)
+  ;;         ("" "float" nil)) 
+  ;;)
+  (setq texcmd "latexmk -xelatex")
+  (setq org-latex-pdf-process (list texcmd))
+  
+  ) ;; End of use-package org
+
+(use-package org-bullets
+  :init (setq org-bullets-bullet-list '("●" "★" "❀" "►" "•" "▸" "☢"))
+  :defer t
+  :ensure t
+  :commands (org-bullets-mode)
   )
 
+(use-package ob-ipython
+  :load-path "vendor/ob-ipython"
+  :defer t
+  :config 
+  (setq ob-ipython-command "ipython3")
+  (add-to-list 'org-structure-template-alist
+               '("ipy" "\n#+BEGIN_SRC ipython :session\n?\n#+END_SRC\n"
+                 "<src lang=\"python\">\n?\n</src>"))
+  )
+
+(use-package ox-pandoc
+  :ensure t
+  )
+
+(use-package org-gcal
+  :ensure t
+  )
+
+(use-package org-gnome
+  :ensure t
+  )
+
+ 
 #+END_SRC
 
 * System admin
@@ -1202,13 +1292,8 @@ Ruby-mode is included with Emacs (23+).
 #+END_SRC
 
 * Writing
+  General writing settings.
 
-** Text mode
-
-
-#+BEGIN_SRC emacs-lisp
-(add-hook 'text-mode-hook 'turn-on-auto-fill)
-#+END_SRC
 
 ** Proselint
 #+BEGIN_SRC emacs-lisp
@@ -1421,11 +1506,13 @@ Ruby-mode is included with Emacs (23+).
             (setq dired-x-hands-off-my-keys nil)
             (load "dired-x")
             ))
-(add-hook 'dired-mode-hook
-          (lambda ()
-            ;; Set dired-x buffer-local variables here.  For example:
-            (dired-omit-mode 1)
-            ))
+
+;; (add-hook 'dired-mode-hook
+;;           (lambda ()
+;;             ;; Set dired-x buffer-local variables here.  For example:
+;;             ;;(dired-omit-mode 1)
+;;             ))
+
 
 
 #+END_SRC

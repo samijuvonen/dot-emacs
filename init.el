@@ -91,6 +91,33 @@
     (shell-command-on-region b e
                              "python -mjson.tool" (current-buffer) t))
   )
+
+(defun modi/switch-to-scratch-and-back (arg)
+  "Toggle between *scratch-MODE* buffer and the current buffer.
+If a scratch buffer does not exist, create it with the major mode set to that
+of the buffer from where this function is called.
+
+        COMMAND -> Open/switch to a scratch buffer in the current buffer's major mode
+    C-0 COMMAND -> Open/switch to a scratch buffer in `fundamental-mode'
+    C-u COMMAND -> Open/switch to a scratch buffer in `org-mode'
+C-u C-u COMMAND -> Open/switch to a scratch buffer in `emacs-elisp-mode'
+
+source: http://emacs.stackexchange.com/questions/80/how-can-i-quickly-toggle-between-a-file-and-a-scratch-buffer-having-the-same-m/81#81
+"
+  (interactive "p")
+  (if (and (= arg 1) ; no prefix
+           (string-match-p "\\*scratch" (buffer-name)))
+      (switch-to-buffer (other-buffer))
+    (let ((mode-str (cl-case arg
+                      (0  "fundamental-mode") ; C-0
+                      (4  "org-mode") ; C-u
+                      (16 "emacs-lisp-mode") ; C-u C-u
+                      (t  (format "%s" major-mode))))) ; no prefix
+      (switch-to-buffer (get-buffer-create
+                         (concat "*scratch-" mode-str "*")))
+      (funcall (intern mode-str))))) ; http://stackoverflow.com/a/7539787/1219634
+
+(defalias 'scratch 'modi/switch-to-scratch-and-back)
 ;; Custom\ utility\ functions:1 ends here
 
 ;; Startup
@@ -312,19 +339,26 @@
 ;; diminish keeps modeline tidy
 (use-package diminish
   :ensure t
-  :config
-  (diminish 'auto-fill-function "")
-  (diminish 'buffer-face-mode "") ; this ain't working
   )
+
+(diminish 'auto-fill-function "")
+(diminish 'buffer-face-mode "" )
+(diminish 'google-this-mode "")
+  
 ;; Modeline\ information:1 ends here
 
 ;; Defaults for files and editing
 
 
 ;; [[file:emacs.org::*Defaults%20for%20files%20and%20editing][Defaults\ for\ files\ and\ editing:1]]
+;; we don't care for Computer Modern, let's use All. The. Fonts.
+(setq latex-run-command  "latexmk -xelatex")
+
 (setq default-major-mode 'text-mode    ;; sorry friend
       ;; initial-major-mode 'text-mode ;; my lithp is not so good
       ) 
+
+(add-hook 'text-mode-hook 'turn-on-auto-fill)
 
 (prefer-coding-system 'utf-8)          ;; be modern
 (set-default-coding-systems 'utf-8)
@@ -394,6 +428,7 @@
 
 (setq enable-recursive-minibuffers t)
 
+(global-hl-line-mode 1)
 (show-paren-mode)
 
 (blink-cursor-mode nil)                ;; stop the madness
@@ -645,6 +680,15 @@
     )
 ;; Undo-tree:1 ends here
 
+;; Lorem ipsum
+
+;; [[file:emacs.org::*Lorem%20ipsum][Lorem\ ipsum:1]]
+(use-package lorem-ipsum
+  :load-path "vendor/emacs-lorem-ipsum"
+  :commands (lorem-ipsum-insert-paragraphs lorem-ipsum-insert-sentences)
+  )
+;; Lorem\ ipsum:1 ends here
+
 ;; Crux
 
 ;; Crux is Bozhidar Batsov's Collection of Ridiculously Useful eXtensions. It is
@@ -726,6 +770,20 @@
   )
 ;; Tramp:1 ends here
 
+;; PDF Tools
+
+;; PDF Tools requires =dnf install -y poppler-glib-devel= on Fedora.
+
+
+;; [[file:emacs.org::*PDF%20Tools][PDF\ Tools:1]]
+(use-package pdf-tools
+  :ensure t
+  :defer
+  :config
+  (pdf-tools-install)
+  )
+;; PDF\ Tools:1 ends here
+
 ;; Orgmode
 
 
@@ -740,11 +798,16 @@
    ("C-c c" . org-capture)
    ("C-c b" . org-iswitchb)
    ("C-c t" . org-time-stamp-inactive)) ; flycheck steals C-c ! map
+  :init
+  (eval-after-load 'ox '(require 'ox-koma-letter))
+  (eval-after-load 'ox-latex
+    '(add-to-list 'org-latex-packages-alist '("AUTO" "babel" t) t) 
+    )
   :config 
   (setq org-modules '(org-crypt org-docview org-habit org-info
                                 org-protocol org-bookmark org-bullets
                                 org-checklist org-eshell org-learn org-man 
-                                org-toc org-velocity org-wikinodes)
+                                org-toc)
         )
   (add-to-list 'org-structure-template-alist
                '("py" "\n#+BEGIN_SRC python\n?\n#+END_SRC\n"
@@ -808,38 +871,10 @@
            "* %u %?\n  %i\n  %a")
           )
         )
-  
-  (use-package org-bullets
-    :init (setq org-bullets-bullet-list '("●" "★" "❀" "►" "•" "▸" "☢"))
-    :defer t
-    :ensure t
-    :commands (org-bullets-mode)
-    )
-
-  (use-package ob-ipython
-    :load-path "vendor/ob-ipython"
-    :defer t
-    :config 
-    (setq ob-ipython-command "ipython3")
-    (add-to-list 'org-structure-template-alist
-                 '("ipy" "\n#+BEGIN_SRC ipython :session\n?\n#+END_SRC\n"
-                   "<src lang=\"python\">\n?\n</src>"))
-    )
-
-  (use-package ox-pandoc
-    :ensure t
-    )
-  (use-package org-gcal
-    :ensure t
-    )
-  (use-package org-gnome
-    :ensure t
-    )
-
   (add-hook 'org-mode-hook
             (lambda () (imenu-add-to-menubar "Index")
-              (org-bullets-mode 1)
-              ))
+              (org-bullets-mode 1)) 
+            )
 
   (org-babel-do-load-languages
    'org-babel-load-languages
@@ -852,12 +887,52 @@
      (js . t)
      (makefile . t)
      (python . t)
-                                        ;(R . t)
+     ;;(R . t)
      (ruby . t)
      (sh . t)
      ))
 
+  ;; Default packages included in every tex file, pdflatex or xelatex
+  ;; (setq org-latex-packages-alist
+  ;;       '(("" "graphicx" t)
+  ;;         ("" "longtable" nil)
+  ;;         ("" "float" nil)) 
+  ;;)
+  (setq texcmd "latexmk -xelatex")
+  (setq org-latex-pdf-process (list texcmd))
+  
+  ) ;; End of use-package org
+
+(use-package org-bullets
+  :init (setq org-bullets-bullet-list '("●" "★" "❀" "►" "•" "▸" "☢"))
+  :defer t
+  :ensure t
+  :commands (org-bullets-mode)
   )
+
+(use-package ob-ipython
+  :load-path "vendor/ob-ipython"
+  :defer t
+  :config 
+  (setq ob-ipython-command "ipython3")
+  (add-to-list 'org-structure-template-alist
+               '("ipy" "\n#+BEGIN_SRC ipython :session\n?\n#+END_SRC\n"
+                 "<src lang=\"python\">\n?\n</src>"))
+  )
+
+(use-package ox-pandoc
+  :ensure t
+  )
+
+(use-package org-gcal
+  :ensure t
+  )
+
+(use-package org-gnome
+  :ensure t
+  )
+
+ 
 ;; Orgmode:1 ends here
 
 ;; Ansible
@@ -1160,14 +1235,6 @@
   )
 ;; Web\ mode:1 ends here
 
-;; Text mode
-
-
-
-;; [[file:emacs.org::*Text%20mode][Text\ mode:1]]
-(add-hook 'text-mode-hook 'turn-on-auto-fill)
-;; Text\ mode:1 ends here
-
 ;; Proselint
 
 ;; [[file:emacs.org::*Proselint][Proselint:1]]
@@ -1382,11 +1449,12 @@
             (setq dired-x-hands-off-my-keys nil)
             (load "dired-x")
             ))
-(add-hook 'dired-mode-hook
-          (lambda ()
-            ;; Set dired-x buffer-local variables here.  For example:
-            (dired-omit-mode 1)
-            ))
+
+;; (add-hook 'dired-mode-hook
+;;           (lambda ()
+;;             ;; Set dired-x buffer-local variables here.  For example:
+;;             ;;(dired-omit-mode 1)
+;;             ))
 ;; Dired:1 ends here
 
 ;; Location and calendar
