@@ -463,47 +463,43 @@ far I've been able to resist.
 #+END_SRC
 
 *** Defaults for files and editing
+**** Minor modes
 
 #+BEGIN_SRC emacs-lisp
-
-;; we don't care for Computer Modern, let's use All. The. Fonts.
-(setq latex-run-command  "latexmk -xelatex")
-
-(setq default-major-mode 'text-mode    ;; sorry friend
-      ;; initial-major-mode 'text-mode ;; my lithp is not so good
-      ) 
-
-(add-hook 'text-mode-hook 'turn-on-auto-fill)
-
+(delete-selection-mode 1)
 (electric-pair-mode 1)
-
-(prefer-coding-system 'utf-8)          ;; be modern
-(set-default-coding-systems 'utf-8)
-(set-terminal-coding-system 'utf-8)
-(set-keyboard-coding-system 'utf-8)
-(setq default-buffer-file-coding-system 'utf-8)
 
 (setq auto-revert-verbose nil)         ;; no whining
 (global-auto-revert-mode 1)            ;; if file changes on disk, reread it
-(setq-default find-file-visit-truename t) ;; resolve symlinks
-
-(setq next-line-add-newlines nil)
-(setq require-final-newline t)
-(setq kill-whole-line t)
-
-(delete-selection-mode 1)
 
 (setq-default indent-tabs-mode nil     ;; we don't like tabs by default
               tab-width 4              ;; not too wide
               fill-column 80
               sentence-end-double-space nil)   ;; not in high school any more
 
+#+END_SRC
+
+**** Hooks
+
+#+BEGIN_SRC emacs-lisp
+(add-hook 'text-mode-hook 'turn-on-auto-fill)
+#+END_SRC
+
+**** Misc buffer options
+
+#+BEGIN_SRC emacs-lisp
+(prefer-coding-system 'utf-8)          ;; be modern
+(set-default-coding-systems 'utf-8)
+(set-terminal-coding-system 'utf-8)
+(set-keyboard-coding-system 'utf-8)
+(setq default-buffer-file-coding-system 'utf-8)
+
+(setq-default find-file-visit-truename t) ;; resolve symlinks
 (setq view-read-only t)                ;; visit read-only files in view-mode
-
-
-
 (setq confirm-nonexistent-file-or-buffer nil)
-
+(setq next-line-add-newlines nil)
+(setq require-final-newline t)
+(setq kill-whole-line t)
 
 
 ;; unique buffer names
@@ -545,11 +541,11 @@ far I've been able to resist.
 
 #+BEGIN_SRC emacs-lisp
 ;; Always open installed Emacs files as read-only. From EmacsWiki.
-(dir-locals-set-class-variables
- 'unwritable-directory
- '((nil . ((buffer-read-only . t)))))
-(dir-locals-set-directory-class (expand-file-name "elpa" user-emacs-directory) 'unwritable-directory)
-(dir-locals-set-directory-class (expand-file-name "vendor" user-emacs-directory) 'unwritable-directory)
+;; (dir-locals-set-class-variables
+;;  'unwritable-directory
+;;  '((nil . ((buffer-read-only . t)))))
+;; (dir-locals-set-directory-class (expand-file-name "elpa" user-emacs-directory) 'unwritable-directory)
+;; (dir-locals-set-directory-class (expand-file-name "vendor" user-emacs-directory) 'unwritable-directory)
 #+END_SRC
 
 *** Defaults for user interaction
@@ -637,7 +633,7 @@ far I've been able to resist.
         ;; make the fringe stand out from the background
         solarized-distinct-fringe-background t
         ;; make the modeline high contrast
-        solarized-high-contrast-mode-line t
+        solarized-high-contrast-mode-line nil
         ;; colors for indicators such as git:gutter, flycheck and similar
         solarized-emphasize-indicators t
         ;; size of org-mode headlines (but keep other size-changes)
@@ -651,7 +647,6 @@ far I've been able to resist.
         )
   :config
   (load-theme 'solarized-light 'no-confirm)
-  (set-face-attribute 'cursor nil :background "DarkOrange3")
 )
 
 ;; (set-face-attribute 'default nil
@@ -660,13 +655,21 @@ far I've been able to resist.
 ;;                     :family "Source Sans Pro" :height 125 :weight 'regular)
 (set-face-attribute 'default nil
                     :family "Fira Mono" :height 120 :weight 'regular)
+;; (set-face-attribute 'variable-pitch nil
+;;                     :family "Fira Sans" :height 125 :weight 'regular)
+;; (set-face-attribute 'variable-pitch nil
+;;                      :family "Linux Biolinum O" :height 140 :weight 'regular)
+ ;; (set-face-attribute 'variable-pitch nil
+ ;;                     :family "Lato" :height 130 :weight 'medium)
 (set-face-attribute 'variable-pitch nil
-                    :family "Fira Sans" :height 125 :weight 'regular)
+                    :family "DejaVu Sans Book" :height 130 :weight 'regular)
 
 (global-font-lock-mode t)
 (setq x-underline-at-descent-line t)
 
-;;(add-hook 'text-mode-hook 'variable-pitch-mode)
+(set-face-background hl-line-face "white" )
+
+(add-hook 'text-mode-hook 'variable-pitch-mode)
 (add-hook 'Info-mode-hook 'variable-pitch-mode)
 
 
@@ -1361,18 +1364,20 @@ Ruby-mode is included with Emacs (23+).
 
 ** AUCTeX
 
+   -dnf install -y emacs-auctex-
+
 #+BEGIN_SRC emacs-lisp
 
 (when (require 'tex-site nil 'noerror)
-  ;; currently using Auctex from Fedora
+  ;; currently using Auctex from Fedora.
   ;; these are recommended in info
   (setq TeX-auto-save t)
   (setq TeX-parse-self t)
   ;;(setq-default TeX-master nil)
-
-  ;; mkiv is the recommended version
+  ;; we don't care for Computer Modern, let's use All. The. Fonts.
+  (setq latex-run-command  "latexmk -xelatex")
+  ;; mkiv is the recommended ConTeXt version
   (setq ConTeXt-Mark-version "IV")
-  
   )
 #+END_SRC
 
@@ -1381,69 +1386,81 @@ Ruby-mode is included with Emacs (23+).
 ;; Requires 'pip install proselint'
 ;;
 ;; From https://github.com/amperser/proselint/tree/master/plugins/flycheck
-(flycheck-define-checker proselint
-  "A linter for prose."
-  :command ("proselint" source-inplace)
-  :error-patterns
-  ((warning line-start (file-name) ":" line ":" column ": "
-            (id (one-or-more (not (any " "))))
-            (message (one-or-more not-newline)
-                     (zero-or-more "\n" (any " ") (one-or-more not-newline)))
-            line-end))
-  :modes (text-mode org-mode markdown-mode gfm-mode))
+;; (flycheck-define-checker proselint
+;;   "A linter for prose."
+;;   :command ("proselint" source-inplace)
+;;   :error-patterns
+;;   ((warning line-start (file-name) ":" line ":" column ": "
+;;             (id (one-or-more (not (any " "))))
+;;             (message (one-or-more not-newline)
+;;                      (zero-or-more "\n" (any " ") (one-or-more not-newline)))
+;;             line-end))
+;;   :modes (text-mode org-mode markdown-mode gfm-mode))
 
-(add-to-list 'flycheck-checkers 'proselint)
+;; (add-to-list 'flycheck-checkers 'proselint)
 
-(add-hook 'text-mode-hook #'flycheck-mode)
-(add-hook 'org-mode-hook #'flycheck-mode)
-(add-hook 'markdown-mode-hook #'flycheck-mode)
-(add-hook 'gfm-mode-hook #'flycheck-mode)
+;; (add-hook 'text-mode-hook #'flycheck-mode)
+;; (add-hook 'org-mode-hook #'flycheck-mode)
+;; (add-hook 'markdown-mode-hook #'flycheck-mode)
+;; (add-hook 'gfm-mode-hook #'flycheck-mode)
 #+END_SRC
 ** Spelling
    Use wcheck-mode
 #+BEGIN_SRC emacs-lisp
-(use-package wcheck-mode
-  :pin gnu
-  :ensure t
-  :commands (wcheck-mode wcheck-mode-languages wcheck-actions
-                         wcheck-jump-forward wcheck-jump-backward)
-  :init
-  (setq wcheck-language-data
-        '(("American English"
-           (program . "aspell")
-           (args "-l" "-d" "en_US")
-           (action-program . "aspell")
-           (action-args "-a" "-d" "en_US")
-           (action-parser . wcheck-parser-ispell-suggestions))
-          ("Finnish"
-           (program . "enchant")
-           (args "-l" "-d" "fi")
-           (syntax . my-finnish-syntax-table)
-           (action-program . "enchant")
-           (action-args "-a" "-d" "fi")
-           (action-parser . enchant-suggestion-menu))))
+;; (use-package wcheck-mode
+;;   :pin gnu
+;;   :ensure t
+;;   :commands (wcheck-mode wcheck-mode-languages wcheck-actions
+;;                          wcheck-jump-forward wcheck-jump-backward)
+;;   :init
+;;   (setq wcheck-language-data
+;;         '(("American English"
+;;            (program . "aspell")
+;;            (args "-l" "-d" "en_US")
+;;            (action-program . "aspell")
+;;            (action-args "-a" "-d" "en_US")
+;;            (action-parser . wcheck-parser-ispell-suggestions))
+;;           ("Finnish"
+;;            (program . "enchant")
+;;            (args "-l" "-d" "fi")
+;;            (syntax . my-finnish-syntax-table)
+;;            (action-program . "enchant")
+;;            (action-args "-a" "-d" "fi")
+;;            (action-parser . enchant-suggestion-menu))))
 
-  :config
-  (defun enchant-suggestions-menu (marked-text)
-    (cons (cons "[Add to dictionary]" 'enchant-add-to-dictionary)
-          (wcheck-parser-ispell-suggestions)))
+;;   :config
+;;   (defun enchant-suggestions-menu (marked-text)
+;;     (cons (cons "[Add to dictionary]" 'enchant-add-to-dictionary)
+;;           (wcheck-parser-ispell-suggestions)))
 
-  (defvar enchant-dictionaries-dir "~/.config/enchant")
-  (defun enchant-add-to-dictionary (marked-text)
-    (let* ((word (aref marked-text 0))
-           (language (aref marked-text 4))
-           (file (let ((code (nth 1 (member "-d" (wcheck-query-language-data
-                                                  language 'action-args)))))
-                   (when (stringp code)
-                     (concat (file-name-as-directory enchant-dictionaries-dir)
-                             code ".dic")))))
-      (when (and file (file-writable-p file))
-        (with-temp-buffer
-          (insert word) (newline)
-          (append-to-file (point-min) (point-max) file)
-          (message "Added word \"%s\" to the %s dictionary"
-                   word language)))))
-  )  
+;;   (defvar enchant-dictionaries-dir "~/.config/enchant")
+;;   (defun enchant-add-to-dictionary (marked-text)
+;;     (let* ((word (aref marked-text 0))
+;;            (language (aref marked-text 4))
+;;            (file (let ((code (nth 1 (member "-d" (wcheck-query-language-data
+;;                                                   language 'action-args)))))
+;;                    (when (stringp code)
+;;                      (concat (file-name-as-directory enchant-dictionaries-dir)
+;;                              code ".dic")))))
+;;       (when (and file (file-writable-p file))
+;;         (with-temp-buffer
+;;           (insert word) (newline)
+;;           (append-to-file (point-min) (point-max) file)
+;;           (message "Added word \"%s\" to the %s dictionary"
+;;                    word language)))))
+;;   )  
+
+;; use hunspell if we have it
+(when (executable-find "hunspell")
+  (setq-default ispell-program-name "hunspell")
+  (setq ispell-really-hunspell t))
+
+;; flyspell
+(add-hook 'text-mode-hook (lambda ()
+                            (flyspell-mode 1)))
+(add-hook 'prog-mode-hook (lambda ()
+                            (flyspell-prog-mode)))
+
 
 #+END_SRC
 
