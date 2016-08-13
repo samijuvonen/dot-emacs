@@ -1,0 +1,6 @@
+* To install emacs daemon as systemd user service:
+
+cp emacs.service ~/.config/systemd/user/
+systemctl --user enable emacs
+systemctl --user start emacs
+ 

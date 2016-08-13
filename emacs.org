@@ -647,22 +647,30 @@ far I've been able to resist.
         )
   :config
   (load-theme 'solarized-light 'no-confirm)
-)
+  )
 
+;; Monospace fonts
+;; ---------------
 ;; (set-face-attribute 'default nil
-;;                     :family "Source Code Pro" :height 115 :weight 'regular :width 'semi-condensed)
-;; (set-face-attribute 'variable-pitch nil
-;;                     :family "Source Sans Pro" :height 125 :weight 'regular)
+;;                     :family "Source Code Pro" :height 115 :weight 'regular)
+;; (set-face-attribute 'default nil
+;;                     :family "Fira Mono" :height 120 :weight 'regular)
 (set-face-attribute 'default nil
-                    :family "Fira Mono" :height 120 :weight 'regular)
+                    :family "DejaVu Sans Mono" :height 110 :weight 'regular)
+
+
+;; Variable pitch faces
+;; --------------------
 ;; (set-face-attribute 'variable-pitch nil
 ;;                     :family "Fira Sans" :height 125 :weight 'regular)
 ;; (set-face-attribute 'variable-pitch nil
 ;;                      :family "Linux Biolinum O" :height 140 :weight 'regular)
- ;; (set-face-attribute 'variable-pitch nil
- ;;                     :family "Lato" :height 130 :weight 'medium)
+;; (set-face-attribute 'variable-pitch nil
+;;                     :family "Lato" :height 130 :weight 'medium)
 (set-face-attribute 'variable-pitch nil
                     :family "DejaVu Sans Book" :height 130 :weight 'regular)
+;; (set-face-attribute 'variable-pitch nil
+;;                     :family "Source Sans Pro" :height 125 :weight 'regular)
 
 (global-font-lock-mode t)
 (setq x-underline-at-descent-line t)
@@ -763,6 +771,14 @@ Emacs frames are what the OS calls "windows".
 (use-package expand-region
   :ensure t
   :bind ("C-=" . er/expand-region))
+#+END_SRC
+
+*** Which-key
+
+#+BEGIN_SRC emacs-lisp
+(use-package which-key
+  :config
+  (which-key-mode))
 #+END_SRC
 
 ** Utilities
@@ -950,7 +966,7 @@ PDF Tools requires =dnf install -y poppler-glib-devel= on Fedora.
 
   (setq org-directory "~/Documents/Org"
         org-agenda-files (list "~/Documents/Org")
-        org-default-notes-file "~/Documents/Org/notes.org.gpg"
+        org-default-notes-file "~/Documents/Org/notes.org"
         org-startup-folded "contents"
         org-archive-folder "~/Documents/Org/.archive"
         org-special-ctrl-a/e t
@@ -986,7 +1002,7 @@ PDF Tools requires =dnf install -y poppler-glib-devel= on Fedora.
            (file+headline "~/Documents/Org/todo.org" "Tasks")
            "* TODO %?\n  %i\n  %a")
           ("n" "Note" entry
-           (file+headline "~/Documents/Org/notes.org.gpg" "Unorganized")
+           (file+headline "~/Documents/Org/notes.org" "Unorganized")
            "* %?\n  %i\n  %a")
           ("j" "Journal" entry
            (file+datetree "~/Documents/Org/journal.org.gpg")
