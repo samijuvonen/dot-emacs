@@ -3,4 +3,7 @@
 cp emacs.service ~/.config/systemd/user/
 systemctl --user enable emacs
 systemctl --user start emacs
- 
+
+* Add an emacs client desktop entry
+
+cp emacsclient.desktop ~/.config/share/applications/
