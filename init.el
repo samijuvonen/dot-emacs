@@ -570,7 +570,7 @@ source: http://emacs.stackexchange.com/questions/80/how-can-i-quickly-toggle-bet
         ;; make the fringe stand out from the background
         solarized-distinct-fringe-background t
         ;; make the modeline high contrast
-        solarized-high-contrast-mode-line nil
+        solarized-high-contrast-mode-line t
         ;; colors for indicators such as git:gutter, flycheck and similar
         solarized-emphasize-indicators t
         ;; size of org-mode headlines (but keep other size-changes)
