@@ -592,9 +592,12 @@ source: http://emacs.stackexchange.com/questions/80/how-can-i-quickly-toggle-bet
 ;;                     :family "Source Code Pro" :height 115 :weight 'regular)
 ;; (set-face-attribute 'default nil
 ;;                     :family "Fira Mono" :height 120 :weight 'regular)
+;; (set-face-attribute 'default nil
+;;                     :family "DejaVu Sans Mono" :height 110 :weight 'regular)
+;; (set-face-attribute 'default nil
+;;                     :family "Liberation Mono" :height 110 :weight 'regular)
 (set-face-attribute 'default nil
-                    :family "DejaVu Sans Mono" :height 110 :weight 'regular)
-
+                    :family "Roboto Mono" :height 110 :weight 'regular)
 
 ;; Variable pitch faces
 ;; --------------------
@@ -604,10 +607,14 @@ source: http://emacs.stackexchange.com/questions/80/how-can-i-quickly-toggle-bet
 ;;                      :family "Linux Biolinum O" :height 140 :weight 'regular)
 ;; (set-face-attribute 'variable-pitch nil
 ;;                     :family "Lato" :height 130 :weight 'medium)
-(set-face-attribute 'variable-pitch nil
-                    :family "DejaVu Sans Book" :height 130 :weight 'regular)
+;; (set-face-attribute 'variable-pitch nil
+;;                     :family "DejaVu Sans" :height 125 :weight 'regular)
 ;; (set-face-attribute 'variable-pitch nil
 ;;                     :family "Source Sans Pro" :height 125 :weight 'regular)
+;; (set-face-attribute 'variable-pitch nil
+;;                     :family "Roboto" :height 120 :weight 'regular)
+(set-face-attribute 'variable-pitch nil
+                    :family "Liberation Sans" :height 125 :weight 'regular)
 
 (global-font-lock-mode t)
 (setq x-underline-at-descent-line t)
