@@ -13,9 +13,9 @@
 
 
 ;; [[file:emacs.org::*Benchmark%20init][Benchmark\ init:1]]
-;; (add-to-list 'load-path "~/.emacs.d/vendor/benchmark-init-el/")
-;; (require 'benchmark-init-loaddefs)
-;; (benchmark-init/activate)
+(add-to-list 'load-path "~/.emacs.d/vendor/benchmark-init-el/")
+(require 'benchmark-init-loaddefs)
+(benchmark-init/activate)
 ;; Benchmark\ init:1 ends here
 
 ;; Name and email
@@ -978,9 +978,47 @@ source: http://emacs.stackexchange.com/questions/80/how-can-i-quickly-toggle-bet
      (sh . t)
      ))
 
+  ;; let's use xelatex for fonts and UTF-8
   (setq texcmd "latexmk -xelatex")
   (setq org-latex-pdf-process (list texcmd))
+
+  ;; don't need table of contents usually
+  (setq org-export-with-toc 'nil)
+  ;; nor section numbers
+  (setq org-export-with-section-numbers 'nil)
   
+  ;; let's make LaTeX export a bit nicer
+  (require 'ox-latex)
+  ;; these packages will be used by all org latex exports
+  (add-to-list 'org-latex-packages-alist '("" "fontspec" nil))
+  (add-to-list 'org-latex-packages-alist '("" "microtype" nil))
+  (add-to-list 'org-latex-packages-alist '("usenames,dvipsnames" "color" nil))
+  
+  ;; define a default export class with decent fonts etc.
+  (add-to-list 'org-latex-classes
+               '("sjj-org-article"
+                 "\\documentclass[10pt,letterpaper]{scrartcl}
+[DEFAULT-PACKAGES]
+[PACKAGES]
+\\setromanfont{TeX Gyre Pagella}
+\\setsansfont{Linux Biolinum O}
+\\setmonofont[Scale=0.9]{DejaVu Sans Mono}
+\\pagestyle{empty}
+\\hypersetup{
+colorlinks = true, % colored links, no hideous boxes 
+urlcolor   = MidnightBlue, % external hyperlinks
+linkcolor  = PineGreen, % internal links
+citecolor  = PineGreen  % citations
+}
+\\title{}
+[EXTRA]"
+                 ("\\section{%s}" . "\\section*{%s}")
+                 ("\\subsection{%s}" . "\\subsection*{%s}")
+                 ("\\subsubsection{%s}" . "\\subsubsection*{%s}")
+                 ("\\paragraph{%s}" . "\\paragraph*{%s}")
+                 ("\\subparagraph{%s}" . "\\subparagraph*{%s}")))
+
+  (setq org-latex-default-class "sjj-org-article")
   ) ;; End of use-package org
 
 (use-package org-bullets
