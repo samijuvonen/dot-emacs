@@ -13,9 +13,9 @@
 
 
 ;; [[file:emacs.org::*Benchmark%20init][Benchmark\ init:1]]
-(add-to-list 'load-path "~/.emacs.d/vendor/benchmark-init-el/")
-(require 'benchmark-init-loaddefs)
-(benchmark-init/activate)
+;; (add-to-list 'load-path "~/.emacs.d/vendor/benchmark-init-el/")
+;; (require 'benchmark-init-loaddefs)
+;; (benchmark-init/activate)
 ;; Benchmark\ init:1 ends here
 
 ;; Name and email
@@ -57,7 +57,7 @@
 (require 'package)
 (setq package-enable-at-startup nil)
 (setq package-archives
-      '(("gnu" . "http://elpa.gnu.org/packages/")
+      '(("gnu" . "https://elpa.gnu.org/packages/")
         ("org" . "http://orgmode.org/elpa/")
         ("melpa-stable" . "https://stable.melpa.org/packages/")
         ;;("melpa" . "https://melpa.org/packages/")
@@ -391,10 +391,17 @@ source: http://emacs.stackexchange.com/questions/80/how-can-i-quickly-toggle-bet
   :ensure t
   )
 
+;; ;; trying out smart-mode-line
+;; (use-package smart-mode-line
+;;   :ensure t
+;;   :config
+;;   (sml/setup)
+;;   )
+
+
 (diminish 'auto-fill-function "")
 (diminish 'buffer-face-mode "" )
 (diminish 'google-this-mode "")
-  
 ;; Modeline\ information:1 ends here
 
 ;; Minor modes
@@ -402,7 +409,6 @@ source: http://emacs.stackexchange.com/questions/80/how-can-i-quickly-toggle-bet
 
 ;; [[file:emacs.org::*Minor%20modes][Minor\ modes:1]]
 (delete-selection-mode 1)
-(electric-pair-mode 1)
 
 (setq auto-revert-verbose nil)         ;; no whining
 (global-auto-revert-mode 1)            ;; if file changes on disk, reread it
@@ -466,9 +472,23 @@ source: http://emacs.stackexchange.com/questions/80/how-can-i-quickly-toggle-bet
   )
 
 (add-to-list 'display-buffer-alist
-             '("wclock" . ((display-buffer-pop-up-window) .
-                           ((inhibit-same-window . t))) 
-               ))
+             ;; '("*wclock*" . ((display-buffer-pop-up-window) .
+             ;;                 ((inhibit-same-window . t))) 
+             ;;   )
+             `(,(rx bos "*wclock*" eos)
+               (display-buffer-reuse-window
+                display-buffer-in-side-window)
+               (reusable-frames . visible)
+               (side            . bottom)
+               (window-height   . 0.3))
+             `(,(rx bos "*Flycheck errors*" eos)
+               (display-buffer-reuse-window
+                display-buffer-in-side-window)
+               (reusable-frames . visible)
+               (side            . bottom)
+               (window-height   . 0.4))
+)
+             
 ;; Misc\ buffer\ options:1 ends here
 
 ;; TODO Set libraries unwritable 
@@ -1185,14 +1205,17 @@ citecolor  = PineGreen  % citations
 
 (use-package yasnippet
   :ensure t
+  :defer t
   :init
-    (yas-global-mode 1)
-    )
+  (add-hook 'prog-mode-hook #'yas-minor-mode)
+  :config (yas-reload-all) 
+  )
 
 
 (add-hook 'prog-mode-hook 'flyspell-prog-mode)
 (add-hook 'prog-mode-hook 'imenu-add-menubar-index)
 (add-hook 'prog-mode-hook 'aggressive-indent-mode)
+(add-hook 'prog-mode-hook 'electric-pair-mode)
 ;; General\ programming:1 ends here
 
 ;; Makefile
@@ -1585,10 +1608,13 @@ citecolor  = PineGreen  % citations
 
 ;; [[file:emacs.org::*Dired][Dired:1]]
 (use-package dired
+  :defer t
   :commands (dired)
-  :config
+  ;; :bind
+  ;; (:map dired-mode-map ("[return]" dired-find-alternate-file))
+  :init
   (setq dired-recursive-copies 'always
-        dired-recursive-deletes 'always
+        dired-recursive-deletes 'top ;; ask once
         dired-dwim-target t
         ;; -F marks links with @
         dired-ls-F-marks-symlinks t
@@ -1599,20 +1625,13 @@ citecolor  = PineGreen  % citations
         wdired-allow-to-redirect-links t
         wdired-use-interactive-rename nil 
         wdired-confirm-overwrite t)
-)
-
-(add-hook 'dired-load-hook
-          (lambda ()
-            ;; Bind dired-x-find-file.
-            (setq dired-x-hands-off-my-keys nil)
-            (load "dired-x")
-            ))
-
-;; (add-hook 'dired-mode-hook
-;;           (lambda ()
-;;             ;; Set dired-x buffer-local variables here.  For example:
-;;             ;;(dired-omit-mode 1)
-;;             ))
+  :config
+  (use-package dired-x
+    :defer t
+    :init
+    (setq dired-x-hands-off-my-keys nil)
+    ) 
+  )
 ;; Dired:1 ends here
 
 ;; Location and calendar
@@ -1630,20 +1649,14 @@ citecolor  = PineGreen  % citations
 (setq display-time-24hr-format t)
 
 (setq display-time-world-list
-      '(("America/Los_Angeles" "California")
-        ("Europe/Helsinki" "Helsinki")
+      '(("America/Los_Angeles" "US West")
+        ("Europe/Helsinki" "Finland")
         ("UTC" "UTC")
         ("America/New_York" "US East")
-        ("America/Chicago" "Chicago")
-        ("America/Denver" "Denver")
-        ("US/Hawaii" "Hawaii")
-        ("Africa/Dakar" "Dakar")
-        ("Europe/London" "London")
-        ("Europe/Paris" "Paris")
-        ("Europe/Berlin" "Berlin")
+        ("Europe/London" "UK")
         ("Asia/Kolkata" "India")
         ("Asia/Shanghai" "China")
-        ("Asia/Tokyo" "Tokyo")))
+        ("Asia/Tokyo" "Japan")))
 
 (setq display-time-world-time-format
       "%R %5Z (UTC%z) - %d %3h - %A")
