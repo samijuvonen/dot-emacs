@@ -4,12 +4,12 @@
 
 ;; Benchmark init
 
-;;    This is for figuring out why startup is slow, normally disabled.
+;;     This is for figuring out why startup is slow, normally disabled.
 
-;;    Installation: Run make inside the directory where you installed
-;;    benchmark-init, this will produce the benchmark-init-loaddefs.el file. Then
-;;    place the following code as early as possible in your Emacs initialization
-;;    script. 
+;;     Installation: Run make inside the directory where you installed
+;;     benchmark-init, this will produce the benchmark-init-loaddefs.el file. Then
+;;     place the following code as early as possible in your Emacs initialization
+;;     script. 
 
 
 ;; [[file:emacs.org::*Benchmark%20init][Benchmark\ init:1]]
@@ -177,7 +177,7 @@ source: http://emacs.stackexchange.com/questions/80/how-can-i-quickly-toggle-bet
 (fset 'display-startup-echo-area-message #'ignore) ;; c'mon!
 
 ;; save Emacs layout on exit
-(desktop-save-mode)
+(desktop-save-mode 1)
 ;; Startup:1 ends here
 
 ;; Backups and cached persistence data
@@ -617,7 +617,7 @@ source: http://emacs.stackexchange.com/questions/80/how-can-i-quickly-toggle-bet
 ;; (set-face-attribute 'default nil
 ;;                     :family "Liberation Mono" :height 110 :weight 'regular)
 (set-face-attribute 'default nil
-                    :family "Roboto Mono" :height 110 :weight 'regular)
+                    :family "Roboto Mono" :height 120 :weight 'regular)
 
 ;; Variable pitch faces
 ;; --------------------
@@ -634,7 +634,7 @@ source: http://emacs.stackexchange.com/questions/80/how-can-i-quickly-toggle-bet
 ;; (set-face-attribute 'variable-pitch nil
 ;;                     :family "Roboto" :height 120 :weight 'regular)
 (set-face-attribute 'variable-pitch nil
-                    :family "Liberation Sans" :height 125 :weight 'regular)
+                    :family "Liberation Sans" :height 130 :weight 'regular)
 
 (global-font-lock-mode t)
 (setq x-underline-at-descent-line t)
@@ -944,15 +944,14 @@ source: http://emacs.stackexchange.com/questions/80/how-can-i-quickly-toggle-bet
         org-src-fontify-natively t
         org-src-tab-acts-natively t
         org-src-preserve-indentation t
-        org-support-shift-select t
-        )
+        org-support-shift-select t)
+  
   (setq org-ellipsis "…")
   (setq org-todo-keywords
         (quote ((sequence "TODO(t)" "NEXT(n)" "|" "DONE(d)")
                 (sequence "WAITING(w@/!)" "HOLD(h@/!)" "|" "CANCELLED(c@/!)" 
-                          "PHONE" "MEETING")
-                ))
-        )
+                          "PHONE" "MEETING"))))
+  
   (setq org-use-fast-todo-selection t)
   (setq org-treat-S-cursor-todo-selection-as-state-change nil)
   (setq org-todo-state-tags-triggers
@@ -962,9 +961,8 @@ source: http://emacs.stackexchange.com/questions/80/how-can-i-quickly-toggle-bet
                 (done ("WAITING") ("HOLD"))
                 ("TODO" ("WAITING") ("CANCELLED") ("HOLD"))
                 ("NEXT" ("WAITING") ("CANCELLED") ("HOLD"))
-                ("DONE" ("WAITING") ("CANCELLED") ("HOLD"))
-                ))
-        )
+                ("DONE" ("WAITING") ("CANCELLED") ("HOLD")))))
+  
   (setq org-capture-templates
         '(("t" "Todo" entry
            (file+headline "~/Documents/Org/todo.org" "Tasks")
@@ -974,13 +972,11 @@ source: http://emacs.stackexchange.com/questions/80/how-can-i-quickly-toggle-bet
            "* %?\n  %i\n  %a")
           ("j" "Journal" entry
            (file+datetree "~/Documents/Org/journal.org.gpg")
-           "* %u %?\n  %i\n  %a")
-          )
-        )
+           "* %u %?\n  %i\n  %a")))
+  
   (add-hook 'org-mode-hook
             (lambda () (imenu-add-to-menubar "Index")
-              (org-bullets-mode 1)) 
-            )
+              (org-bullets-mode 1)))
 
   (org-babel-do-load-languages
    'org-babel-load-languages
@@ -995,8 +991,7 @@ source: http://emacs.stackexchange.com/questions/80/how-can-i-quickly-toggle-bet
      (python . t)
      (R . t)
      (ruby . t)
-     (sh . t)
-     ))
+     (sh . t)))
 
   ;; let's use xelatex for fonts and UTF-8
   (setq texcmd "latexmk -xelatex")
@@ -1013,6 +1008,7 @@ source: http://emacs.stackexchange.com/questions/80/how-can-i-quickly-toggle-bet
   (add-to-list 'org-latex-packages-alist '("" "fontspec" nil))
   (add-to-list 'org-latex-packages-alist '("" "microtype" nil))
   (add-to-list 'org-latex-packages-alist '("usenames,dvipsnames" "color" nil))
+  (add-to-list 'org-latex-packages-alist '("" "enumitem" nil))
   
   ;; define a default export class with decent fonts etc.
   (add-to-list 'org-latex-classes
@@ -1024,6 +1020,7 @@ source: http://emacs.stackexchange.com/questions/80/how-can-i-quickly-toggle-bet
 \\setsansfont{Linux Biolinum O}
 \\setmonofont[Scale=0.9]{DejaVu Sans Mono}
 \\pagestyle{empty}
+\\setlist{noitemsep}
 \\hypersetup{
 colorlinks = true, % colored links, no hideous boxes 
 urlcolor   = MidnightBlue, % external hyperlinks
@@ -1038,15 +1035,45 @@ citecolor  = PineGreen  % citations
                  ("\\paragraph{%s}" . "\\paragraph*{%s}")
                  ("\\subparagraph{%s}" . "\\subparagraph*{%s}")))
 
-  (setq org-latex-default-class "sjj-org-article")
-  ) ;; End of use-package org
+  (setq org-latex-default-class "sjj-org-article") 
+
+  ;; ox-koma-letter
+  (setq org-koma-letter-class-option-file "sjj-us")
+  (add-to-list 'org-latex-classes
+               '("sjj-letter"
+"\\documentclass\[%
+DIV=14,
+fontsize=12pt,
+parskip=half,
+subject=titled,
+backaddress=false,
+fromalign=left,
+fromemail=true,
+fromphone=true\]\{scrlttr2\}
+[DEFAULT-PACKAGES]
+[PACKAGES]
+\\setromanfont{TeX Gyre Pagella}
+\\setsansfont{Linux Biolinum O}
+\\setmonofont[Scale=0.9]{DejaVu Sans Mono}
+\\pagestyle{empty}
+\\setlist{noitemsep}
+\\hypersetup{
+colorlinks = true, % colored links, no hideous boxes 
+urlcolor   = MidnightBlue, % external hyperlinks
+linkcolor  = PineGreen, % internal links
+citecolor  = PineGreen  % citations 
+}
+\[EXTRA]"))
+
+  (setq org-koma-letter-default-class "sjj-letter")
+
+);; End of use-package org
 
 (use-package org-bullets
   :init (setq org-bullets-bullet-list '("●" "★" "❀" "►" "•" "▸" "☢"))
   :defer t
   :ensure t
-  :commands (org-bullets-mode)
-  )
+  :commands (org-bullets-mode))
 
 (use-package ob-ipython
   :load-path "vendor/ob-ipython"
@@ -1055,21 +1082,17 @@ citecolor  = PineGreen  % citations
   (setq ob-ipython-command "ipython3")
   (add-to-list 'org-structure-template-alist
                '("ipy" "\n#+BEGIN_SRC ipython :session\n?\n#+END_SRC\n"
-                 "<src lang=\"python\">\n?\n</src>"))
-  )
+                 "<src lang=\"python\">\n?\n</src>")))
 
 (use-package ox-pandoc
   :defer t
-  :ensure t
-  )
+  :ensure t)
 
 (use-package org-gcal
-  :ensure t
-  )
+  :ensure t)
 
 (use-package org-gnome
-  :ensure t
-  )
+  :ensure t)
 
  
 ;; Orgmode:1 ends here
@@ -1385,6 +1408,16 @@ citecolor  = PineGreen  % citations
   (add-to-list 'auto-mode-alist '("\\.html?\\'" . web-mode))
   )
 ;; Web\ mode:1 ends here
+
+;; General writing settings.
+
+
+;; [[file:emacs.org::*General%20writing%20settings.][General\ writing\ settings\.:1]]
+;; (use-package typo
+;;   :load-path "vendor/typoel"
+;;   :init
+;;   (add-hook 'text-mode-hook 'typo-mode))
+;; General\ writing\ settings\.:1 ends here
 
 ;; AUCTeX
 
