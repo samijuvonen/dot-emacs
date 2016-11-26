@@ -1,6 +1,6 @@
 [submodule "vendor/emacs-lorem-ipsum"]
-	path = vendor/emacs-lorem-ipsum
+	path = .emacs.d/vendor/emacs-lorem-ipsum
 	url = https://github.com/jschaf/emacs-lorem-ipsum.git
 [submodule "vendor/benchmark-init-el"]
-	path = vendor/benchmark-init-el
+	path = .emacs.d/vendor/benchmark-init-el
 	url = https://github.com/dholm/benchmark-init-el.git
